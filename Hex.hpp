@@ -10,6 +10,12 @@
 
 #include <filesystem>
 #include <fstream>
+#include <span>
+
+class Sections {
+	public:
+		virtual void process(uint32_t address, std::span<uint8_t> data);
+};
 
 class Hex {
 	public:
@@ -19,9 +25,16 @@ class Hex {
 	protected:
 		std::ifstream file;
 
+
 	private:
+		uint32_t start_address;
+		uint32_t segment_address;
+		std::vector<uint8_t> payload;
+		Sections sections;
+
 		void read_file();
-		void convert_hex(std::vector<uint8_t>& payload, const std::string line);
+		void parse_line(const std::string line);
+		bool process_line();
 
 };
 
