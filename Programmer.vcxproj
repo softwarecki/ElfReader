@@ -136,26 +136,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Elf.cpp" />
-    <ClCompile Include="Hex.cpp" />
-    <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Network.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Programmer.cpp" />
-    <ClCompile Include="Target.cpp" />
-    <ClCompile Include="DeviceDescriptor.cpp" />
-    <ClCompile Include="TargetTester.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DeviceDescriptor.hpp" />
     <ClInclude Include="elf.h" />
     <ClInclude Include="Elf.hpp" />
-    <ClInclude Include="Hex.hpp" />
-    <ClInclude Include="Image.hpp" />
-    <ClInclude Include="Network.hpp" />
-    <ClInclude Include="Programmer.hpp" />
-    <ClInclude Include="protocol.hpp" />
-    <ClInclude Include="Target.hpp" />
-    <ClInclude Include="TargetTester.hpp" />
     <ClInclude Include="types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

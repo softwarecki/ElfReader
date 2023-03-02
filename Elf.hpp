@@ -12,8 +12,6 @@
 #include <filesystem>
 #include <vector>
 
-#include "Image.hpp"
-
 #include "elf.h"
 
 class Elf;
@@ -23,7 +21,6 @@ class ElfSection {
 		ElfSection() : header{ 0 } {};
 
 	protected:
-
 		Elf32_Shdr header;
 		std::shared_ptr<unsigned char[]> buffer;
 		friend class Elf;
@@ -32,6 +29,13 @@ class ElfSection {
 class StringSection : public ElfSection {
 	public:
 		std::string get(unsigned int index);
+		void print();
+};
+
+class SymbolTable : public ElfSection {
+	public:
+		std::string get(unsigned int index);
+		void print();
 };
 
 class Elf {
@@ -39,10 +43,9 @@ class Elf {
 		Elf(std::filesystem::path path);
 		void print();
 		void read_section(ElfSection &section, unsigned int index);
+		void read_section(ElfSection &section, std::string name);
+		int find_section(const std::string name);
 
-		// Read firmware image from elf file
-		void read_image(ImageInterface& image);
-		void read_image2(ImageInterface& image);
 
 	protected:
 		std::ifstream file;

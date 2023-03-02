@@ -8,64 +8,75 @@
 #include "Elf.hpp"
 
 
+void e_type(int type) {
+#define X(x) do { if (type == x) { printf(#x "\n"); return; } } while (0)
+	X(ET_NONE);	// No file type
+	X(ET_REL);	// Relocatable file
+	X(ET_EXEC);	// Executable file
+	X(ET_DYN);	// Shared object file
+	X(ET_CORE);	// Core file
+	printf("Unknown\n");
+#undef X
+}
+
 void sh_type(int type) {
-#define X(x) if (type == x) printf(#x "\n");
-	X(SHT_NULL)	/* inactive */
-	X(SHT_PROGBITS)	/* program defined information */
-	X(SHT_SYMTAB)	/* symbol table section */
-	X(SHT_STRTAB)	/* string table section */
-	X(SHT_RELA)	/* relocation section with addends */
-	X(SHT_HASH)	/* symbol hash table section */
-	X(SHT_DYNAMIC)	/* dynamic section */
-	X(SHT_NOTE)	/* note section */
-	X(SHT_NOBITS)	/* no space section */
-	X(SHT_REL)	/* relocation section - no addends */
-	X(SHT_SHLIB)	/* reserved - purpose unknown */
-	X(SHT_DYNSYM)	/* dynamic symbol table section */
-	X(SHT_INIT_ARRAY)	/* Initialization function pointers. */
-	X(SHT_FINI_ARRAY)	/* Termination function pointers. */
-	X(SHT_PREINIT_ARRAY)	/* Pre-initialization function ptrs. */
-	X(SHT_GROUP)	/* Section group. */
-	X(SHT_SYMTAB_SHNDX)	/* Section indexes (see SHN_XINDEX). */
-	X(SHT_LOOS)	/* First of OS specific semantics */
-	X(SHT_HIOS)	/* Last of OS specific semantics */
-	X(SHT_GNU_VERDEF)
-	X(SHT_GNU_VERNEED)
-	X(SHT_GNU_VERSYM)
-	X(SHT_LOPROC)	/* reserved range for processor */
-	X(SHT_HIPROC)	/* specific section header types */
-	X(SHT_LOUSER)	/* reserved range for application */
-	X(SHT_HIUSER)	/* specific indexes */
+#define X(x) if (type == x) printf(#x "\n")
+	X(SHT_NULL);	/* inactive */
+	X(SHT_PROGBITS);	/* program defined information */
+	X(SHT_SYMTAB);	/* symbol table section */
+	X(SHT_STRTAB);	/* string table section */
+	X(SHT_RELA);	/* relocation section with addends */
+	X(SHT_HASH);	/* symbol hash table section */
+	X(SHT_DYNAMIC);	/* dynamic section */
+	X(SHT_NOTE);	/* note section */
+	X(SHT_NOBITS);	/* no space section */
+	X(SHT_REL);	/* relocation section - no addends */
+	X(SHT_SHLIB);	/* reserved - purpose unknown */
+	X(SHT_DYNSYM);	/* dynamic symbol table section */
+	X(SHT_INIT_ARRAY);	/* Initialization function pointers. */
+	X(SHT_FINI_ARRAY);	/* Termination function pointers. */
+	X(SHT_PREINIT_ARRAY);	/* Pre-initialization function ptrs. */
+	X(SHT_GROUP);	/* Section group. */
+	X(SHT_SYMTAB_SHNDX);	/* Section indexes (see SHN_XINDEX). */
+	X(SHT_LOOS);	/* First of OS specific semantics */
+	X(SHT_HIOS);	/* Last of OS specific semantics */
+	X(SHT_GNU_VERDEF);
+	X(SHT_GNU_VERNEED);
+	X(SHT_GNU_VERSYM);
+	X(SHT_LOPROC);	/* reserved range for processor */
+	X(SHT_HIPROC);	/* specific section header types */
+	X(SHT_LOUSER);	/* reserved range for application */
+	X(SHT_HIUSER);	/* specific indexes */
 #undef X
 }
 
 void sh_flags(int type) {
-#define X(x) if (type & x) printf(" " #x);
-	X(SHF_WRITE) /* Section contains writable data. */
-	X(SHF_ALLOC) /* Section occupies memory. */
-	X(SHF_EXECINSTR) /* Section contains instructions. */
-	X(SHF_MERGE) /* Section may be merged. */
-	X(SHF_STRINGS) /* Section contains strings. */
-	X(SHF_INFO_LINK) /* sh_info holds section index. */
-	X(SHF_LINK_ORDER) /* Special ordering requirements. */
-	X(SHF_OS_NONCONFORMING) /* OS-specific processing required. */
-	X(SHF_GROUP) /* Member of section group. */
-	X(SHF_TLS) /* Section contains TLS data. */
-	X(SHF_MASKOS) /* OS-specific semantics. */
-	X(SHF_MASKPROC) /* Processor-specific semantics. */
+#define X(x) if (type & x) printf(" " #x)
+	X(SHF_WRITE); /* Section contains writable data. */
+	X(SHF_ALLOC); /* Section occupies memory. */
+	X(SHF_EXECINSTR); /* Section contains instructions. */
+	X(SHF_MERGE); /* Section may be merged. */
+	X(SHF_STRINGS); /* Section contains strings. */
+	X(SHF_INFO_LINK); /* sh_info holds section index. */
+	X(SHF_LINK_ORDER); /* Special ordering requirements. */
+	X(SHF_OS_NONCONFORMING); /* OS-specific processing required. */
+	X(SHF_GROUP); /* Member of section group. */
+	X(SHF_TLS); /* Section contains TLS data. */
+	X(SHF_MASKOS); /* OS-specific semantics. */
+	X(SHF_MASKPROC); /* Processor-specific semantics. */
 	printf("\n");
 #undef X
 }
 
 void ph_type(int type) {
 #define X(x) if (type == x) printf(#x "\n")
-	X(PT_NULL	);/* Unused entry. */
-	X(PT_LOAD	);/* Loadable segment. */
+	X(PT_NULL);/* Unused entry. */
+	X(PT_LOAD);/* Loadable segment. */
 	X(PT_DYNAMIC);/* Dynamic linking information segment. */
 	X(PT_INTERP);/* Pathname of interpreter. */
-	X(PT_NOTE	);/* Auxiliary information. */
+	X(PT_NOTE);/* Auxiliary information. */
 	X(PT_SHLIB);/* Reserved (not used). */
-	X(PT_PHDR	);/* Location of program header itself. */
+	X(PT_PHDR);/* Location of program header itself. */
 	X(PT_TLS);/* Thread local storage segment */
 #undef X
 }
@@ -154,9 +165,9 @@ void Elf::read_programs() {
 		read(&programs[idx], sizeof(programs[0]));
 
 		if ((programs[idx].filesz > programs[idx].memsz) ||
-			(programs[idx].off && (programs[idx].off + programs[idx].filesz > file_size)))
+			(programs[idx].off && programs[idx].filesz && (programs[idx].off + programs[idx].filesz > file_size)))
 			throw Exception("Invalid program header.");
-		
+
 		pos += file_header.phentsize;
 	}
 }
@@ -177,6 +188,7 @@ void Elf::read_sections() {
 	}
 }
 
+#if 0
 // Read firmware image from elf file based on Program headers
 void Elf::read_image(ImageInterface& image) {
 	for (const Elf32_Phdr &hdr : programs) {
@@ -210,10 +222,11 @@ void Elf::read_image2(ImageInterface& image) {
 		//	hdr.vaddr, hdr.vaddr + hdr.size - 1, hdr.size, strings.get(hdr.name).c_str());
 	}
 }
-
+#endif
 
 void Elf::print() {
-	printf("File type: 0x%04x\n", file_header.type);
+	printf("File type: 0x%04x ", file_header.type);
+	e_type(file_header.type);
 	printf("Machine architecture: 0x%04x\n", file_header.machine);
 	printf("ELF format version: 0x%08x\n", file_header.version);
 	printf("Entry point: 0x%08x\n", file_header.entry);
@@ -229,7 +242,7 @@ void Elf::print() {
 
 	for (auto idx = 0; idx < file_header.shnum; idx++) {
 		Elf32_Shdr& sect = sections[idx];
-		printf("Section %u (%s)\n", idx, strings.buffer.get() + sect.name);
+		printf("\nSection %u (%s)\n", idx, strings.buffer.get() + sect.name);
 		printf("\tSection name index: 0x%04x\n", sect.name);
 		printf("\tSection type: 0x%04x ", sect.type);
 		sh_type(sect.type);
@@ -242,13 +255,20 @@ void Elf::print() {
 		printf("\tDepends on section type: 0x%04x\n", sect.info);
 		printf("\tAlignment in bytes: 0x%04x\n", sect.addralign);
 		printf("\tSize of each entry in section: 0x%04x\n", sect.entsize);
+
+		if (sect.type == SHT_STRTAB) {
+			StringSection str;
+			read_section(str, idx);
+			str.print();
+		}
+
 	}
 
 	for (auto idx = 0; idx < file_header.phnum; idx++) {
 		Elf32_Phdr& prog = programs[idx];
 
 		// TODO: Program header validation
-		printf("Program header %d:\n", idx);
+		printf("\nProgram header %d:\n", idx);
 		printf("\tEntry type: 0x%0x\n", prog.type);
 		ph_type(prog.type);
 		printf("\tFile offset of contents: 0x%0x\n", prog.off);
@@ -259,6 +279,14 @@ void Elf::print() {
 		printf("\tAccess permission flags: 0x%0x\n", prog.flags);
 		ph_flags(prog.flags);
 		printf("\tAlignment in memory and file: 0x%0x\n", prog.align);
+
+		if (!(prog.off && prog.filesz)) {
+			if (prog.off)
+				printf("Warning! Non zero file offset (%u) when filesz = 0.\n", prog.off);
+
+			if (prog.filesz)
+				printf("Warning! Non zero file size (%u) when offset = 0.\n", prog.filesz);
+		}
 	}
 }
 
@@ -278,12 +306,28 @@ void Elf::read_section(ElfSection& section, unsigned int index) {
 	read(reinterpret_cast<char*>(section.buffer.get()), section.header.size);
 }
 
+int Elf::find_section(const std::string name) {
+	return -1;
+}
+
+void Elf::read_section(ElfSection &section, std::string name) {
+
+}
+
+
 std::string StringSection::get(unsigned int index) {
 	// TODO: Check index, return string from buffer
 	return std::string(reinterpret_cast<const char*>(buffer.get() + index));
 }
 
-// Read firmware image from elf file
-void read_image(ImageInterface& image) {
-
+void StringSection::print()
+{
+	const char *str = reinterpret_cast<const char *>(buffer.get());
+	const char *end = str + header.size;
+	while (str < end) {
+		int len = strlen(str);
+		printf("%s\n", str);
+		str += len + 1;
+	}
 }
+
