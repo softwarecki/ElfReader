@@ -7,6 +7,86 @@
 #include "types.hpp"
 #include "Elf.hpp"
 
+using namespace elf;
+
+SectionHeader::SectionHeader() {
+	std::memset(dynamic_cast<Elf32_Shdr*>(this), 0, sizeof(Elf32_Shdr));
+}
+
+SectionHeader::SectionHeader(std::istream *stream, std::streamsize file_size) {
+	stream->read(reinterpret_cast<char*>(
+		dynamic_cast<Elf32_Shdr*>(this)), sizeof(Elf32_Shdr));
+
+	if (file_size && (type != SHT_NOBITS && (off + size > file_size)))
+		throw Exception("Invalid section header.");
+}
+
+void SectionHeader::update_name(const StringsTable &str) {
+	name_str = str.get(name);
+}
+
+void Section::read(std::istream* stream, const SectionHeader* header, std::streamsize file_size) {
+	if (header->type == SHT_NOBITS)
+		throw Exception("Cannot read SHT_NOBITS section.");
+
+	this->header = *header;
+
+	if (file_size && (header->off + header->size > file_size))
+		throw Exception("Invalid section position in file.");
+
+	buffer = std::shared_ptr<unsigned char[]>(new unsigned char[header->size]);
+	stream->seekg(header->off, std::ios_base::beg);
+	stream->read(reinterpret_cast<char*>(buffer.get()), header->size);
+}
+
+
+
+std::string StringsTable::get(unsigned int index) const {
+	// TODO: Check index, return string from buffer
+	return std::string(reinterpret_cast<const char*>(buffer.get() + index));
+}
+
+void StringsTable::print()
+{
+	const char *str = reinterpret_cast<const char *>(buffer.get());
+	const char *end = str + header.size;
+	while (str < end) {
+		int len = strlen(str);
+		printf("%s\n", str);
+		str += len + 1;
+	}
+}
+
+#if 0
+typedef struct {
+	Elf32_Word	name;	/* String table index of name. */
+	Elf32_Addr	value;	/* Symbol value. */
+	Elf32_Word	size;	/* Size of associated object. */
+	unsigned char	info;	/* Type and binding information. */
+	unsigned char	other;	/* Reserved (not used). */
+	Elf32_Half	shndx;	/* Section index of symbol. */
+} Elf32_Sym;
+#endif
+
+uint32_t SymbolTable::get(std::string name) {
+	return 0;
+}
+
+void SymbolTable::print(const StringsTable* str) {
+	const Elf32_Sym *sym = reinterpret_cast<Elf32_Sym *>(buffer.get());
+	const Elf32_Sym *end = sym + header.size / sizeof(*sym);
+
+	printf("name      value     size info other shndx\n");
+
+	while (sym < end) {
+		printf("%4u 0x%08X %8u %4u %5u %5u ", 
+		       sym->name, sym->value, sym->size, sym->info, sym->other, sym->shndx);
+		if (str)
+			printf("%s", str->get(sym->name).c_str());
+		printf("\n");
+		sym++;
+	}
+}
 
 void e_type(int type) {
 #define X(x) do { if (type == x) { printf(#x "\n"); return; } } while (0)
@@ -102,12 +182,12 @@ Elf::Elf(std::filesystem::path path)
 	read_header();
 	read_sections();
 
-	read_section(strings, file_header.shstrndx);
-
-	// Prepare sections names
+	update_section_names();
 
 	read_programs();
 }
+
+
 
 void Elf::read(void* buf, std::streamsize size) {
 	file.read(static_cast<char*>(buf), size);
@@ -173,20 +253,51 @@ void Elf::read_programs() {
 }
 
 void Elf::read_sections() {
-	sections.resize(file_header.shnum);
+	sections.reserve(file_header.shnum);
 
 	off_t pos = file_header.shoff;
 	for (auto idx = 0; idx < file_header.shnum; idx++) {
 		file.seekg(pos, std::ios_base::beg);
 
-		read(&sections[idx], sizeof(sections[0]));
-
-		if (sections[idx].type != SHT_NOBITS && (sections[idx].off + sections[idx].size > file_size))
-			throw Exception("Invalid section header.");
+		sections.emplace_back(&file, file_size);
 
 		pos += file_header.shentsize;
 	}
 }
+
+void Elf::update_section_names() {
+	StringsTable strings;
+
+	read_section(strings, file_header.shstrndx);
+
+	for (auto idx = 0; idx < sections.size(); idx++)
+		sections[idx].update_name(strings);
+}
+
+int Elf::find_section(const std::string name) {
+	for (auto idx = 0; idx < sections.size(); idx++)
+		if (sections[idx].name_str == name)
+			return idx;
+
+	return -1;
+}
+
+void Elf::read_section(Section& section, unsigned int index) {
+	if (index >= sections.size())
+		throw String(_T("Invalid section index."));
+
+	section.read(&file, &sections[index], file_size);
+}
+
+void Elf::read_section(Section &section, const std::string name) {
+	int index = find_section(name);
+	if (index < 0)
+		throw Exception("Section not found");
+
+	read_section(section, index);
+}
+
+
 
 #if 0
 // Read firmware image from elf file based on Program headers
@@ -241,8 +352,8 @@ void Elf::print() {
 	printf("Section name strings section: 0x%04x\n", file_header.shstrndx);
 
 	for (auto idx = 0; idx < file_header.shnum; idx++) {
-		Elf32_Shdr& sect = sections[idx];
-		printf("\nSection %u (%s)\n", idx, strings.buffer.get() + sect.name);
+		SectionHeader& sect = sections[idx];
+		printf("\nSection %u (%s [%u])\n", idx, sect.name_str.c_str(), sect.name);
 		printf("\tSection name index: 0x%04x\n", sect.name);
 		printf("\tSection type: 0x%04x ", sect.type);
 		sh_type(sect.type);
@@ -255,13 +366,13 @@ void Elf::print() {
 		printf("\tDepends on section type: 0x%04x\n", sect.info);
 		printf("\tAlignment in bytes: 0x%04x\n", sect.addralign);
 		printf("\tSize of each entry in section: 0x%04x\n", sect.entsize);
-
+#if 0
 		if (sect.type == SHT_STRTAB) {
 			StringSection str;
 			read_section(str, idx);
 			str.print();
 		}
-
+#endif
 	}
 
 	for (auto idx = 0; idx < file_header.phnum; idx++) {
@@ -290,44 +401,7 @@ void Elf::print() {
 	}
 }
 
-void Elf::read_section(ElfSection& section, unsigned int index) {
-	if (index >= sections.size())
-		throw String(_T("Invalid section index."));
-
-	// TODO: Use cached section header
-	file.seekg(file_header.shoff + index * file_header.shentsize, std::ios_base::beg);
-	read(reinterpret_cast<char*>(&section.header), sizeof(section.header));
-
-	// TODO: Validate size
-	// TODO: Validate offset
-
-	section.buffer = std::shared_ptr<unsigned char[]>(new unsigned char[section.header.size]);
-	file.seekg(section.header.off, std::ios_base::beg);
-	read(reinterpret_cast<char*>(section.buffer.get()), section.header.size);
-}
-
-int Elf::find_section(const std::string name) {
-	return -1;
-}
-
-void Elf::read_section(ElfSection &section, std::string name) {
-
-}
 
 
-std::string StringSection::get(unsigned int index) {
-	// TODO: Check index, return string from buffer
-	return std::string(reinterpret_cast<const char*>(buffer.get() + index));
-}
 
-void StringSection::print()
-{
-	const char *str = reinterpret_cast<const char *>(buffer.get());
-	const char *end = str + header.size;
-	while (str < end) {
-		int len = strlen(str);
-		printf("%s\n", str);
-		str += len + 1;
-	}
-}
 

@@ -13,9 +13,18 @@ int main(int argc, char** argv) {
 		std::cout << "Hello World! " << argc << "\n";
 		if (1)
 		{
-			Elf elf("sample_library");
+			elf::Elf elf("sample_library");
 			//Elf elf("dsp_lib_example_lib_mtl_release");
-			elf.print();
+			//elf.print();
+
+			elf::StringsTable strtab;
+			elf.read_section(strtab, ".strtab");
+
+			elf::SymbolTable symtab;
+			elf.read_section(symtab, ".symtab");
+
+			strtab.print();
+			symtab.print(&strtab);
 		}
 
 	}
